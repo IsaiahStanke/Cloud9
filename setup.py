@@ -9,5 +9,5 @@ setuptools.setup(
     author='Isaiah Stanke',
     author_email='',
     description='Signature-based Instrusion Detection System',
-    install_requires=['scapy']
+    install_requires=['scapy', 'sqlite3']
 )
