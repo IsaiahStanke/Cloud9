@@ -7,7 +7,7 @@ from datetime import datetime
 def packet_callback(packet):
     if packet.haslayer(scapy.TCP) and packet.getlayer(scapy.TCP).flags == 2:  # SYN flag set
         tcp_packet = packet.getlayer(scapy.TCP)
-        if tcp_packet.dport in [445, 139]:  # Destination port 445 (SMB)
+        if tcp_packet.dport in [445, 139]:  # Destination port 445 + 139 (SMB)
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             summary = packet.summary()
             log_entry = f"[{timestamp}] {summary}\n"
@@ -15,7 +15,7 @@ def packet_callback(packet):
                 file.write(log_entry)
             print(f"[+] SMB enumeration detected: {summary}")
 
-# this function grabs the actual packets and send it to the packet_callback function
+# this function grabs the actual packets and sends it to the packet_callback function
 def detect_smb_enumeration():
     print("[*] Starting SMB Enumeration Detection on all network interfaces...")
     scapy.sniff(prn=packet_callback, store=0, iface="Ethernet", filter="tcp")

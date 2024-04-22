@@ -1,9 +1,19 @@
+import hashlib
 import requests
+import time
+from scapy.all import *
 
-# Replace 'YOUR_API_KEY' with your actual VirusTotal API key
+
 API_KEY = '9b0652630a34dfe2b474c969914fe3030b7055165dc04115f63fd41a1ea41c3c'
 
-def check_hash(hash_value):
+# Function to calculate file hash
+def calculate_hash(data, hash_algo='sha256'):
+    hash_func = hashlib.new(hash_algo)
+    hash_func.update(data)
+    return hash_func.hexdigest()
+
+# Function to check hash using VirusTotal API
+def check_hash_virustotal(hash_value):
     url = f'https://www.virustotal.com/api/v3/files/{hash_value}'
     headers = {'x-apikey': API_KEY}
 
@@ -30,11 +40,31 @@ def check_hash(hash_value):
                     print("No data found for this hash.")
             else:
                 print("No data found for this hash.")
+        elif response.status_code == 404:
+            print("No data found for this hash.")
         else:
             print(f"Error: {response.status_code}")
     except Exception as e:
         print(f"An error occurred: {e}")
 
+
+# Function to extract files from network packets
+def extract_files(packet):
+    if packet.haslayer(Raw):
+        data = bytes(packet[Raw])
+        if data:
+            # Calculate file hash
+            file_hash = calculate_hash(data)
+            print("Hash of extracted file:", file_hash)
+            # Check hash using VirusTotal API
+            check_hash_virustotal(file_hash)
+            # Do further processing if needed
+
+# Main function to listen to network traffic
+def listen_to_traffic(packet_count):
+    sniff(count=packet_count, prn=extract_files)
+
+
 if __name__ == "__main__":
-    hash_value = input("Enter the hash value to check: ")
-    check_hash(hash_value)
+    packet_count = 100  # Number of packets to capture
+    listen_to_traffic(packet_count)
