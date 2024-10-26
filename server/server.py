@@ -42,7 +42,7 @@ app.config.update(
 )
 
 # PostgreSQL database configuration for app data
-DATABASE_URI = 'postgresql://cloud9:$Tr33K1ck55$@localhost/detection_data'
+DATABASE_URI = 'postgresql://user:password@localhost/detection_data'
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
