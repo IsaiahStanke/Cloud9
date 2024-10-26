@@ -18,10 +18,10 @@ import uuid
 hostname = socket.gethostname()
 
 # Secure API URL and API key from environment variables
-DASHBOARD_URL = os.getenv('DASHBOARD_URL', 'https://192.168.1.121:5000/data')
-API_KEY = '772a97281008478a1e13d078d477ccf5d5818e3134f02cea1e8a0ce7c10a80f2'
+DASHBOARD_URL = os.getenv('DASHBOARD_URL', 'https://IP:PORT/data')
+API_KEY = 'EXAMPLE'
 
-SECRET_KEY = os.getenv('SECRET_KEY', 'KnightTwistingDead55#!')  # Replace 'your-default-secret-key' with a strong key
+SECRET_KEY = os.getenv('SECRET_KEY', 'EXAMPLE SECRET KEY')  # Replace 'your-default-secret-key' with a strong key
 
 # Cache to store sent data hashes and timestamps
 sent_data_cache = {}
