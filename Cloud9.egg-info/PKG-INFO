@@ -1,0 +1,16 @@
+Metadata-Version: 2.1
+Name: Cloud9
+Version: 0.1.0
+Summary: Signature-based Intrusion Detection System
+Home-page: https://github.com/IsaiahStanke/Cloud9
+Author: Isaiah Stanke
+Author-email: 
+License: GNU General Public License v3.0
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+
+UNKNOWN
+

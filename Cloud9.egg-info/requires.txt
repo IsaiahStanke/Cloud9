@@ -1,0 +1,11 @@
+Flask
+Flask-SQLAlchemy
+Flask-Talisman
+Flask-Limiter
+Flask-Login
+redis
+marshmallow
+Werkzeug
+requests
+scapy
+psycopg2
