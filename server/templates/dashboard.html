@@ -8,32 +8,44 @@
     <style>
         body {
             padding: 20px;
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
         }
         h1 {
             margin-bottom: 20px;
-        }
-        table {
-            width: 100%;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
+            font-size: 2.5rem;
+            color: #343a40;
         }
         .table-container {
             margin-top: 30px;
         }
-        .clear-button {
-            margin-top: 10px;
+        .table th, .table td {
+            padding: 12px;
+        }
+        .table-hover tbody tr:hover {
+            background-color: #f1f3f5;
+        }
+        .search-input {
+            margin-bottom: 20px;
+            width: 50%;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
             margin-bottom: 20px;
         }
-        /* Add margin to search input and clear button */
-        .search-input, .clear-button {
-            margin-bottom: 15px;
+        .btn-danger {
+            font-weight: bold;
+            background-color: #dc3545;
         }
-        /* Add spacing between rows */
-        .table th, .table td {
-            padding: 16px; /* Adjust padding for better spacing */
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        .collapsible-section {
+            margin-top: 20px;
+        }
+        .collapse-arrow {
+            cursor: pointer;
         }
     </style>
 </head>
@@ -41,17 +53,25 @@
     <div class="container">
         <h1>Cloud 9 Dashboard</h1>
         
-        <!-- Clear Button -->
-        <form action="/clear" method="POST">
-            <button type="submit" class="btn btn-danger clear-button">Clear Entries</button>
-        </form>
+        <!-- Button Container to align Clear and Logout buttons -->
+        <div class="button-container">
+            <!-- Clear Entries Button -->
+            <form action="/clear" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">  <!-- Hidden CSRF token -->
+                <button type="submit" class="btn btn-danger">Clear Entries</button>
+            </form>
+                     
+            <!-- Logout Button -->
+            <a href="/logout" class="btn btn-danger">Logout</a>
+        </div>
 
         <!-- Search Input -->
         <input class="form-control search-input" id="searchInput" type="text" placeholder="Search by Hostname" onkeyup="searchTable()">
 
         <div class="table-container">
+            <h3>Detections</h3>
             <table class="table table-bordered table-hover" id="dataTable">
-                <thead>
+                <thead class="table-dark">
                     <tr>
                         <th>Timestamp</th>
                         <th>Hostname</th>
@@ -64,12 +84,64 @@
                 </tbody>
             </table>
         </div>
+
+        <div class="table-container">
+            <h3>Scheduled Tasks</h3>
+            <table class="table table-bordered table-hover" id="taskTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Hostname</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody id="taskTableBody">
+                    <!-- Task rows will be dynamically populated via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Host Entries Table -->
+        <div class="table-container">
+            <h3>Hosts File Entries</h3>
+            <table class="table table-bordered table-hover" id="hostsTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Hostname</th>
+                        <th>Details</th>
+                        <th>Non-Default Entries</th>
+                    </tr>
+                </thead>
+                <tbody id="hostsTableBody">
+                    <!-- Host entries will be dynamically populated via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Collapsible Section for Non-Microsoft Services -->
+        <div class="collapsible-section">
+            <h3>Non-Microsoft Services</h3>
+            <table class="table table-bordered table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Hostname</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody id="nonMicrosoftServicesTableBody">
+                    <!-- Non-Microsoft Services rows will be dynamically populated via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // JavaScript function to filter the table based on search input
+        // JavaScript function to filter the detection table based on search input
         function searchTable() {
             var input, filter, table, tr, td, i, txtValue;
             input = document.getElementById("searchInput");
@@ -98,73 +170,127 @@
             return temp.innerHTML;
         }
 
-        // JavaScript function to update the table if new data is received
+        // Function to update the detection table
         function updateTable(data) {
             const tableBody = document.getElementById('tableBody');
-            const existingRows = Array.from(tableBody.getElementsByTagName('tr'));
+            tableBody.innerHTML = ''; // Clear current table
 
-            // Create a new map to track existing data for efficient updates
-            const newData = new Map();
-
-            // Reverse the data here to ensure the newest entries are first
             data.reverse().forEach(entry => {
-                newData.set(`${entry.timestamp}-${entry.hostname}`, entry);
+                const row = `<tr>
+                    <td>${sanitizeHTML(entry.timestamp)}</td>
+                    <td>${sanitizeHTML(entry.hostname)}</td>
+                    <td>${sanitizeHTML(entry.detection_type)}</td>
+                    <td>${sanitizeHTML(entry.details)}</td>
+                </tr>`;
+                tableBody.innerHTML += row;
             });
+        }
 
-            // Update or append rows
-            newData.forEach((entry, key) => {
-                const existingRow = existingRows.find(row => row.id === key);
+        // Function to update the task table
+        function updateTaskTable(data) {
+            const tableBody = document.getElementById('taskTableBody');
+            tableBody.innerHTML = ''; // Clear the current table
+
+            data.reverse().forEach(entry => {
+                const row = `<tr>
+                    <td>${sanitizeHTML(entry.timestamp)}</td>
+                    <td>${sanitizeHTML(entry.hostname)}</td>
+                    <td>${sanitizeHTML(entry.details)}</td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        // Function to update the hosts entries table
+        function updateHostsTable(data) {
+            const tableBody = document.getElementById('hostsTableBody');
+            tableBody.innerHTML = ''; // Clear the current table
+
+            data.reverse().forEach(entry => {
+                const row = `<tr>
+                    <td>${sanitizeHTML(entry.timestamp)}</td>
+                    <td>${sanitizeHTML(entry.hostname)}</td>
+                    <td>${sanitizeHTML(entry.details)}</td>
+                    <td>${sanitizeHTML(entry.non_default_entries)}</td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        // Function to update the Non-Microsoft Services table with collapsible rows
+        function updateNonMicrosoftServicesTable(data) {
+            const tableBody = document.getElementById('nonMicrosoftServicesTableBody');
+            tableBody.innerHTML = ''; // Clear the current table
+
+            data.reverse().forEach((entry, index) => {
                 const sanitizedTimestamp = sanitizeHTML(entry.timestamp);
                 const sanitizedHostname = sanitizeHTML(entry.hostname);
-                const sanitizedDetectionType = sanitizeHTML(entry.detection_type);
                 const sanitizedDetails = sanitizeHTML(entry.details);
 
-                if (existingRow) {
-                    // Update existing row
-                    existingRow.innerHTML = `
+                const rowId = `collapseRow-${index}`;
+                const row = `
+                    <tr>
                         <td>${sanitizedTimestamp}</td>
                         <td>${sanitizedHostname}</td>
-                        <td>${sanitizedDetectionType}</td>
-                        <td>${sanitizedDetails}</td>
-                    `;
-                } else {
-                    // Add new row to the top of the table
-                    const row = document.createElement('tr');
-                    row.id = key;
-                    row.innerHTML = `
-                        <td>${sanitizedTimestamp}</td>
-                        <td>${sanitizedHostname}</td>
-                        <td>${sanitizedDetectionType}</td>
-                        <td>${sanitizedDetails}</td>
-                    `;
-                    tableBody.prepend(row);  // Use prepend instead of appendChild to insert at the top
-                }
-            });
-
-            // Remove any extra rows
-            existingRows.forEach(row => {
-                if (!newData.has(row.id)) {
-                    row.remove();
-                }
+                        <td>
+                            <button class="btn btn-link collapse-arrow" type="button" data-bs-toggle="collapse" data-bs-target="#${rowId}" aria-expanded="false" aria-controls="${rowId}">
+                                ▼ Show Details
+                            </button>
+                            <div id="${rowId}" class="collapse">
+                                <div class="card card-body">
+                                    ${sanitizedDetails}
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
             });
         }
 
         function checkForUpdates() {
+            // Fetch detection data
             fetch('/data')
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data);  // Add this line to log the received data
-                    // If there is new data, update the table
                     if (data.length > 0) {
                         updateTable(data);
                     }
                 })
                 .catch(error => console.error('Error fetching data:', error));
+
+            // Fetch scheduled tasks data
+            fetch('/scheduled_tasks')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        updateTaskTable(data);
+                    }
+                })
+                .catch(error => console.error('Error fetching scheduled tasks:', error));
+
+            // Fetch hosts file entries
+            fetch('/hosts_entries')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        updateHostsTable(data);
+                    }
+                })
+                .catch(error => console.error('Error fetching hosts entries:', error));
+
+            // Fetch Non-Microsoft Services data
+            fetch('/non_microsoft_services')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        updateNonMicrosoftServicesTable(data);  // Collapsible update for Non-MS services
+                    }
+                })
+                .catch(error => console.error('Error fetching non-Microsoft services:', error));
         }
 
-
-        // Poll the server every 5 seconds to check for updates
-        setInterval(checkForUpdates, 5000);
+        setInterval(checkForUpdates, 5000); // Poll for updates every 5 seconds
     </script>
 
 </body>
